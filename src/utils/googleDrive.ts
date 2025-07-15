@@ -1,3 +1,7 @@
+// ===============================
+// File: src/utils/googleDrive.ts
+// ===============================
+
 interface GoogleDriveConfig {
   apiKey: string;
   clientId: string;
@@ -6,28 +10,22 @@ interface GoogleDriveConfig {
 
 const GOOGLE_DRIVE_CONFIG: GoogleDriveConfig = {
   apiKey: "AIzaSyA7HyK-tVQOtcKI0Ax_bnbf7ZTP0VHVdp8",
-
   clientId: "281827061797-qlfieqikj0nkadq5gdavhbmnqncobgtt.apps.googleusercontent.com",
   clientSecret: "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"
-  // Note: In a real application, do not expose client secrets in the frontend code.
-  // Use environment variables or a secure backend service to manage sensitive information.
-  // clientId: process.env.GOOGLE_CLIENT_ID || '',
-  // clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
-  // Note: The above clientId and clientSecret are placeholders.
-  // Replace them with your actual Google API credentials.
-
-  // Ensure you have enabled the Google Drive API in your Google Cloud Console.
-  
-
+  // ✅ Note: In production, never expose secrets like this — use env vars or a backend!
 };
 
 class GoogleDriveService {
   private isAuthenticated = false;
   private accessToken: string | null = null;
 
+  /**
+   * Initialize the Google API client.
+   * If the user is not signed in, automatically start authentication.
+   */
   async initialize(): Promise<boolean> {
     try {
-      // Load Google API script
+      // Load Google API script if not loaded
       if (!window.gapi) {
         await this.loadGoogleAPI();
       }
@@ -41,20 +39,25 @@ class GoogleDriveService {
         scope: 'https://www.googleapis.com/auth/drive.file'
       });
 
-      // Check if user is already signed in
       if (authInstance.isSignedIn.get()) {
+        // ✅ User is already signed in
         this.isAuthenticated = true;
         this.accessToken = authInstance.currentUser.get().getAuthResponse().access_token;
         return true;
+      } else {
+        // ✅ Automatically sign in with account chooser if not signed in
+        await this.authenticate();
+        return this.isAuthenticated;
       }
-
-      return false;
     } catch (error) {
       console.error('Failed to initialize Google Drive:', error);
       return false;
     }
   }
 
+  /**
+   * Load Google API script dynamically.
+   */
   private loadGoogleAPI(): Promise<void> {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
@@ -65,11 +68,17 @@ class GoogleDriveService {
     });
   }
 
+  /**
+   * Trigger Google sign-in flow.
+   * Uses prompt=select_account to force the account chooser every time.
+   */
   async authenticate(): Promise<boolean> {
     try {
       const authInstance = window.gapi.auth2.getAuthInstance();
-      const user = await authInstance.signIn();
-      
+      const user = await authInstance.signIn({
+        prompt: 'select_account' // ✅ Always show account chooser
+      });
+
       this.isAuthenticated = true;
       this.accessToken = user.getAuthResponse().access_token;
       return true;
@@ -85,9 +94,8 @@ class GoogleDriveService {
     }
 
     try {
-      // Search for existing folder
       const searchQuery = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-      const searchUrl = parentId 
+      const searchUrl = parentId
         ? `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(searchQuery)} and '${parentId}' in parents`
         : `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(searchQuery)}`;
 
@@ -103,7 +111,6 @@ class GoogleDriveService {
         return searchData.files[0].id;
       }
 
-      // Create new folder if not found
       const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
         method: 'POST',
         headers: {
@@ -126,8 +133,8 @@ class GoogleDriveService {
   }
 
   async uploadFile(
-    file: Blob, 
-    fileName: string, 
+    file: Blob,
+    fileName: string,
     customerName: string
   ): Promise<boolean> {
     if (!this.accessToken) {
@@ -135,13 +142,11 @@ class GoogleDriveService {
     }
 
     try {
-      // Find or create customer folder
       const folderId = await this.findOrCreateFolder(customerName);
       if (!folderId) {
         throw new Error('Failed to create customer folder');
       }
 
-      // Upload file
       const form = new FormData();
       const metadata = {
         name: fileName,
