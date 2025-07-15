@@ -282,7 +282,7 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
                 <div className="font-bold">RS. {invoice.amountInWords}</div>
               </div>
               <div className="w-32 text-center">
-                <div className="font-bold">ROUND OFF / ON</div>
+                <div className="font-bold">ROUND OFF/ON</div>
                 <div className="border-t mt-8">
                   <div className="font-bold">TOTAL AMOUNT</div>
                   <div className="font-bold">{invoice.totalAmount.toFixed(2)}</div>
