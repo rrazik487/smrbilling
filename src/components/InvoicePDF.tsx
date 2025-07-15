@@ -261,13 +261,13 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
               </div>
               <div className="w-64 p-3 text-sm">
                 <div className="flex justify-between">
-                  <span>CGST</span><span>{invoice.cgst.toFixed(2)}</span>
+                  <span>CGST 2.5%</span><span>{invoice.cgst.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>SGST</span><span>{invoice.sgst.toFixed(2)}</span>
+                  <span>SGST 2.5%</span><span>{invoice.sgst.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>IGST</span><span>{invoice.igst.toFixed(2)}</span>
+                  <span>IGST 5%</span><span>{invoice.igst.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold border-t mt-2 pt-1">
                   <span>Total GST</span>

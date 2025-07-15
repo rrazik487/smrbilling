@@ -630,17 +630,17 @@ export function InvoiceForm() {
             {customer.state === "TAMIL NADU" ? (
               <>
                 <div className="flex justify-between">
-                  <span>CGST 2.5% (2.5%):</span>
+                  <span>CGST (2.5%):</span>
                   <span className="font-medium">₹{totals.cgst.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>SGST 2.5% (2.5%):</span>
+                  <span>SGST (2.5%):</span>
                   <span className="font-medium">₹{totals.sgst.toFixed(2)}</span>
                 </div>
               </>
             ) : (
               <div className="flex justify-between">
-                <span>IGST 5% (5%):</span>
+                <span>IGST (5%):</span>
                 <span className="font-medium">₹{totals.igst.toFixed(2)}</span>
               </div>
             )}
