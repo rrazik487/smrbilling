@@ -12,7 +12,7 @@ const GOOGLE_DRIVE_CONFIG: GoogleDriveConfig = {
   apiKey: "AIzaSyA7HyK-tVQOtcKI0Ax_bnbf7ZTP0VHVdp8",
   clientId: "281827061797-qlfieqikj0nkadq5gdavhbmnqncobgtt.apps.googleusercontent.com",
   clientSecret: "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"
-  // ✅ Note: In production, never expose secrets like this — use env vars or a backend!
+  // ✅ Never expose secrets in production. Use env vars instead.
 };
 
 class GoogleDriveService {
@@ -20,43 +20,48 @@ class GoogleDriveService {
   private accessToken: string | null = null;
 
   /**
-   * Initialize the Google API client.
-   * If the user is not signed in, automatically start authentication.
+   * Initialize Google API client.
+   * If user is not signed in, automatically show account selector to sign in.
    */
   async initialize(): Promise<boolean> {
     try {
-      // Load Google API script if not loaded
+      // ✅ Load Google API script if not already loaded
       if (!window.gapi) {
         await this.loadGoogleAPI();
       }
 
-      await new Promise((resolve) => {
+      // ✅ Wait for auth2 library to load
+      await new Promise<void>((resolve) => {
         window.gapi.load('auth2', resolve);
       });
 
+      // ✅ Init auth instance with Drive scope
       const authInstance = window.gapi.auth2.init({
         client_id: GOOGLE_DRIVE_CONFIG.clientId,
         scope: 'https://www.googleapis.com/auth/drive.file'
       });
 
+      // ✅ Already signed in
       if (authInstance.isSignedIn.get()) {
-        // ✅ User is already signed in
         this.isAuthenticated = true;
         this.accessToken = authInstance.currentUser.get().getAuthResponse().access_token;
+        console.log('[GoogleDrive] Already signed in');
         return true;
-      } else {
-        // ✅ Automatically sign in with account chooser if not signed in
-        await this.authenticate();
-        return this.isAuthenticated;
       }
+
+      // ✅ Not signed in → force sign in with account chooser
+      console.log('[GoogleDrive] Not signed in, prompting sign in...');
+      const didAuth = await this.authenticate();
+      return didAuth;
+
     } catch (error) {
-      console.error('Failed to initialize Google Drive:', error);
+      console.error('[GoogleDrive] Failed to initialize:', error);
       return false;
     }
   }
 
   /**
-   * Load Google API script dynamically.
+   * Dynamically load Google API script.
    */
   private loadGoogleAPI(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -69,8 +74,7 @@ class GoogleDriveService {
   }
 
   /**
-   * Trigger Google sign-in flow.
-   * Uses prompt=select_account to force the account chooser every time.
+   * Sign in to Google with forced account chooser every time.
    */
   async authenticate(): Promise<boolean> {
     try {
@@ -81,13 +85,19 @@ class GoogleDriveService {
 
       this.isAuthenticated = true;
       this.accessToken = user.getAuthResponse().access_token;
+      console.log('[GoogleDrive] User signed in:', user.getBasicProfile().getEmail());
       return true;
     } catch (error) {
-      console.error('Authentication failed:', error);
+      console.error('[GoogleDrive] Authentication failed:', error);
+      this.isAuthenticated = false;
+      this.accessToken = null;
       return false;
     }
   }
 
+  /**
+   * Find or create folder in Drive.
+   */
   async findOrCreateFolder(folderName: string, parentId?: string): Promise<string | null> {
     if (!this.accessToken) {
       throw new Error('Not authenticated');
@@ -111,6 +121,7 @@ class GoogleDriveService {
         return searchData.files[0].id;
       }
 
+      // ✅ Create new folder
       const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
         method: 'POST',
         headers: {
@@ -127,11 +138,14 @@ class GoogleDriveService {
       const createData = await createResponse.json();
       return createData.id;
     } catch (error) {
-      console.error('Failed to find or create folder:', error);
+      console.error('[GoogleDrive] Failed to find or create folder:', error);
       return null;
     }
   }
 
+  /**
+   * Upload file to Drive.
+   */
   async uploadFile(
     file: Blob,
     fileName: string,
@@ -166,23 +180,30 @@ class GoogleDriveService {
 
       return response.ok;
     } catch (error) {
-      console.error('Failed to upload file:', error);
+      console.error('[GoogleDrive] Failed to upload file:', error);
       return false;
     }
   }
 
+  /**
+   * Check connection state.
+   */
   isConnected(): boolean {
     return this.isAuthenticated;
   }
 
+  /**
+   * Sign out from Google.
+   */
   async signOut(): Promise<void> {
     try {
       const authInstance = window.gapi.auth2.getAuthInstance();
       await authInstance.signOut();
       this.isAuthenticated = false;
       this.accessToken = null;
+      console.log('[GoogleDrive] User signed out.');
     } catch (error) {
-      console.error('Failed to sign out:', error);
+      console.error('[GoogleDrive] Failed to sign out:', error);
     }
   }
 }
