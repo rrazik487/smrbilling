@@ -6,8 +6,8 @@ interface GoogleDriveConfig {
 
 const GOOGLE_DRIVE_CONFIG: GoogleDriveConfig = {
   apiKey: "AIzaSyA7HyK-tVQOtcKI0Ax_bnbf7ZTP0VHVdp8",
-  clientId: "281827061797-qlfieqikj0nkadq5gdavhbmnqncobgtt.apps.googleusercontent.com",
-  clientSecret: "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"
+  clientId: process.env.GOOGLE_CLIENT_ID || "",
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
 };
 
 class GoogleDriveService {
