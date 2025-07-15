@@ -6,8 +6,19 @@ interface GoogleDriveConfig {
 
 const GOOGLE_DRIVE_CONFIG: GoogleDriveConfig = {
   apiKey: "AIzaSyA7HyK-tVQOtcKI0Ax_bnbf7ZTP0VHVdp8",
-  clientId: process.env.GOOGLE_CLIENT_ID || "",
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+
+  clientId: "281827061797-qlfieqikj0nkadq5gdavhbmnqncobgtt.apps.googleusercontent.com",
+  clientSecret: "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"
+  // Note: In a real application, do not expose client secrets in the frontend code.
+  // Use environment variables or a secure backend service to manage sensitive information.
+  // clientId: process.env.GOOGLE_CLIENT_ID || '',
+  // clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+  // Note: The above clientId and clientSecret are placeholders.
+  // Replace them with your actual Google API credentials.
+
+  // Ensure you have enabled the Google Drive API in your Google Cloud Console.
+  
+
 };
 
 class GoogleDriveService {
