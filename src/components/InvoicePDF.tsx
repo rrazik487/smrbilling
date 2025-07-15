@@ -224,23 +224,7 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
               </div>
             </div>
 
-            {/* Buyer */}
-            <div className="p-3 border-b border-black">
-              <div className="flex">
-                <div className="w-8 font-bold">TO</div>
-                <div className="flex-1">
-                  <div className="font-bold">{invoice.customer.name}</div>
-                  <div className="text-sm">
-                    <strong>GSTIN:</strong> {invoice.customer.gstin}
-                  </div>
-                  <div className="text-sm mt-1">
-                    {invoice.customer.address.split("\n").map((line, i) => (
-                      <div key={i}>{line}</div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+
 
             {/* Items Table */}
             <table className="w-full border-collapse">
