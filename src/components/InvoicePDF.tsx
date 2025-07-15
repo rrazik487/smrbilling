@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { X, Download, Cloud, CloudOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,7 +34,7 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
       const imgWidth = 210;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      const finalHeight = Math.min(imgHeight, 297); // fit to A4
+      const finalHeight = Math.min(imgHeight, 297);
 
       pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, finalHeight);
 
@@ -116,11 +116,16 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
                 className="gap-2"
               >
                 {isUploading ? (
-                  <CloudOff className="h-4 w-4 animate-spin" />
+                  <>
+                    <CloudOff className="h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
                 ) : (
-                  <Cloud className="h-4 w-4" />
+                  <>
+                    <Cloud className="h-4 w-4" />
+                    Save to Drive
+                  </>
                 )}
-                {isUploading ? "Uploading..." : "Save to Drive"}
               </Button>
               <Button onClick={downloadPDF} variant="outline" className="gap-2">
                 <Download className="h-4 w-4" />
@@ -133,7 +138,6 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
           </div>
         </DialogHeader>
 
-        {/* ✅ Full invoice preview, fixed size for PDF */}
         <div
           ref={invoiceRef}
           className="bg-white p-6 text-black"
@@ -144,9 +148,7 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
             boxSizing: "border-box",
           }}
         >
-          {/* ✅ Your full invoice markup starts here */}
           <div className="border-2 border-black">
-            {/* Company header */}
             <div className="flex border-b border-black">
               <div className="flex-1 p-3 border-r border-black">
                 <div className="text-center">
@@ -178,20 +180,9 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
               <h2 className="text-lg font-bold">INVOICE</h2>
             </div>
 
-            {/* Dispatch & Shipping */}
             <div className="border-b border-black">
               <div className="grid grid-cols-2">
                 <div className="p-3 border-r border-black">
-                  <div className="font-bold mb-2">Supplier:</div>
-                  <div>GSTIN: {invoice.supplier.gstin}</div>
-                  <div className="font-medium">{invoice.supplier.name}</div>
-                  <div className="text-sm">
-                    {invoice.supplier.address.split("\n").map((line, i) => (
-                      <div key={i}>{line}</div>
-                    ))}
-                  </div>
-                </div>
-                <div className="p-3">
                   <div className="font-bold mb-2">Recipient:</div>
                   <div>GSTIN: {invoice.recipient.gstin}</div>
                   <div className="font-medium">{invoice.recipient.name}</div>
@@ -202,31 +193,28 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
                     ))}
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 border-t border-black">
-                <div className="p-3 border-r border-black">
-                  <div className="font-bold mb-2">Dispatch From:</div>
-                  <div className="text-sm">
-                    {invoice.dispatchFrom.address.split("\n").map((line, i) => (
-                      <div key={i}>{line}</div>
-                    ))}
+                <div className="grid grid-cols-2 border-t border-black">
+                  <div className="p-3 border-r border-black">
+                    <div className="font-bold mb-2">Dispatch From:</div>
+                    <div className="text-sm">
+                      {invoice.dispatchFrom.address.split("\n").map((line, i) => (
+                        <div key={i}>{line}</div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div className="p-3">
-                  <div className="font-bold mb-2">Ship To:</div>
-                  <div>GSTIN: {invoice.shipTo.gstin}</div>
-                  <div className="text-sm">
-                    {invoice.shipTo.address.split("\n").map((line, i) => (
-                      <div key={i}>{line}</div>
-                    ))}
+                  <div className="p-3">
+                    <div className="font-bold mb-2">Ship To:</div>
+                    <div>GSTIN: {invoice.shipTo.gstin}</div>
+                    <div className="text-sm">
+                      {invoice.shipTo.address.split("\n").map((line, i) => (
+                        <div key={i}>{line}</div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-
-
-            {/* Items Table */}
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-100">
@@ -263,7 +251,6 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
               </tbody>
             </table>
 
-            {/* Tax & Bank */}
             <div className="flex border-t border-black">
               <div className="flex-1 p-3 border-r border-black text-sm">
                 <div className="font-bold mb-2">BANK DETAILS</div>
@@ -289,7 +276,6 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
               </div>
             </div>
 
-            {/* Amount in Words */}
             <div className="p-3 border-t border-black flex">
               <div className="flex-1 text-sm">
                 <div className="font-bold">TOTAL AMOUNT PAYABLE (IN WORDS):</div>
@@ -304,7 +290,6 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="p-3 border-t border-black flex justify-between items-end">
               <div className="text-xs">
                 <div>Certified that the particulars given above are true & correct.</div>
@@ -321,9 +306,10 @@ export function InvoicePDF({ invoice, onClose }: InvoicePDFProps) {
               </div>
             </div>
           </div>
-          {/* ✅ Full invoice ends */}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
+export default InvoicePDF;

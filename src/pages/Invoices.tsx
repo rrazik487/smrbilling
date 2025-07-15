@@ -1,45 +1,37 @@
-import { useState, useEffect } from "react";
-import { Search, Eye, Edit, Trash2, Download, FileText } from "lucide-react";
+// ===============================
+// File: src/pages/Invoices.tsx
+// ===============================
+
+import { useState } from "react";
+import { Search, Eye, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { InvoiceData } from "@/types/invoice";
-import { invoiceStorage } from "@/utils/localStorage";
 import { InvoicePDF } from "@/components/InvoicePDF";
+import { useFirestoreCollection } from "@/hooks/useFirestore";
 
 export default function Invoices() {
-  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
+  const {
+    items: invoices,
+    deleteItem,
+    loading,
+  } = useFirestoreCollection<InvoiceData>("invoices");
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
   const [showPDF, setShowPDF] = useState(false);
 
-  useEffect(() => {
-    loadInvoices();
-  }, []);
-
-  const loadInvoices = () => {
-    const allInvoices = invoiceStorage.getAll();
-    // Sort by date, newest first
-    allInvoices.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setInvoices(allInvoices);
-  };
-
-  const filteredInvoices = invoices.filter(invoice =>
-    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.customer.gstin.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const deleteInvoice = (id: string) => {
-    invoiceStorage.delete(id);
-    loadInvoices();
-    toast({
-      title: "Success",
-      description: "Invoice deleted successfully",
-    });
-  };
+  const filteredInvoices = invoices
+    .filter(
+      (invoice) =>
+        invoice.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.customer?.gstin?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const viewInvoice = (invoice: InvoiceData) => {
     setSelectedInvoice(invoice);
@@ -47,13 +39,13 @@ export default function Invoices() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN');
+    return new Date(dateString).toLocaleDateString("en-IN");
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
     }).format(amount);
   };
 
@@ -79,101 +71,124 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Invoice List */}
-      <div className="space-y-4">
-        {filteredInvoices.map((invoice) => (
-          <Card key={invoice.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    {invoice.invoiceNumber}
-                  </CardTitle>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {formatDate(invoice.date)} • Bill No: {invoice.billNo}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => viewInvoice(invoice)}
-                    className="gap-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    View
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => deleteInvoice(invoice.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <div className="text-sm text-muted-foreground">Customer</div>
-                  <div className="font-medium">{invoice.customer.name}</div>
-                  <div className="text-xs text-muted-foreground">{invoice.customer.gstin}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Items</div>
-                  <div className="font-medium">{invoice.items.length} item(s)</div>
-                  <div className="text-xs text-muted-foreground">
-                    {invoice.items[0]?.description}
-                    {invoice.items.length > 1 && ` +${invoice.items.length - 1} more`}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Amount</div>
-                  <div className="font-bold text-lg">{formatCurrency(invoice.totalAmount)}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Taxable: {formatCurrency(invoice.totalTaxableValue)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Tax Details</div>
-                  <div className="flex gap-1 flex-wrap">
-                    {invoice.cgst > 0 && (
-                      <>
-                        <Badge variant="secondary" className="text-xs">
-                          CGST: ₹{invoice.cgst.toFixed(2)}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          SGST: ₹{invoice.sgst.toFixed(2)}
-                        </Badge>
-                      </>
-                    )}
-                    {invoice.igst > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        IGST: ₹{invoice.igst.toFixed(2)}
-                      </Badge>
-                    )}
-                  </div>
-                  {invoice.truckNo && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Truck: {invoice.truckNo}
+      {loading ? (
+        <div className="text-center py-12">Loading...</div>
+      ) : (
+        <div className="space-y-4">
+          {filteredInvoices.map((invoice) => (
+            <Card
+              key={invoice.id}
+              className="hover:shadow-md transition-shadow"
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      {invoice.invoiceNumber}
+                    </CardTitle>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {formatDate(invoice.date)} • Bill No: {invoice.billNo}
                     </div>
-                  )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => viewInvoice(invoice)}
+                      className="gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        deleteItem(invoice.id);
+                        toast({
+                          title: "Deleted",
+                          description: "Invoice deleted successfully",
+                        });
+                      }}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Customer</div>
+                    <div className="font-medium">{invoice.customer?.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {invoice.customer?.gstin}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Items</div>
+                    <div className="font-medium">
+                      {invoice.items?.length} item(s)
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {invoice.items?.[0]?.description}
+                      {invoice.items?.length > 1 &&
+                        ` +${invoice.items.length - 1} more`}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Amount</div>
+                    <div className="font-bold text-lg">
+                      {formatCurrency(invoice.totalAmount)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Taxable: {formatCurrency(invoice.totalTaxableValue)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Tax Details</div>
+                    <div className="flex gap-1 flex-wrap">
+                      {invoice.cgst > 0 && (
+                        <>
+                          <Badge variant="secondary" className="text-xs">
+                            CGST: ₹{invoice.cgst.toFixed(2)}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            SGST: ₹{invoice.sgst.toFixed(2)}
+                          </Badge>
+                        </>
+                      )}
+                      {invoice.igst > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          IGST: ₹{invoice.igst.toFixed(2)}
+                        </Badge>
+                      )}
+                    </div>
+                    {invoice.truckNo && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Truck: {invoice.truckNo}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      {filteredInvoices.length === 0 && (
+      {filteredInvoices.length === 0 && !loading && (
         <div className="text-center py-12">
           <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-muted-foreground">No invoices found</h3>
+          <h3 className="text-lg font-medium text-muted-foreground">
+            No invoices found
+          </h3>
           <p className="text-muted-foreground">
-            {searchTerm ? "Try adjusting your search terms" : "Start by creating your first invoice"}
+            {searchTerm
+              ? "Try adjusting your search terms"
+              : "Start by creating your first invoice"}
           </p>
         </div>
       )}

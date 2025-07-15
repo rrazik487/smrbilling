@@ -41,11 +41,8 @@ export function InvoiceForm() {
       rate: 0,
       amount: 0
     }],
-    supplier: {
-      gstin: "33DNKP57481H1ZF",
-      name: "BARAGATH COIR",
-      address: "baragath coir dindigul main road velliyangil, 639118, TAMIL NADU"
-    },
+    
+    
     recipient: {
       gstin: "",
       name: "",
@@ -53,7 +50,7 @@ export function InvoiceForm() {
       placeOfSupply: ""
     },
     dispatchFrom: {
-      address: "baragath coir dindigul main road velliyangil, 639118, TAMIL NADU"
+      address: ""
     },
     shipTo: {
       gstin: "",
@@ -555,7 +552,7 @@ export function InvoiceForm() {
                   )}
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
                   <div className="md:col-span-2">
                     <Label>Description</Label>
                     <Input
@@ -580,6 +577,18 @@ export function InvoiceForm() {
                       onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                       placeholder="0"
                     />
+                  </div>
+                  <div>
+                    <Label>Unit</Label>
+                      <select
+                        value={item.unit}
+                        onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
+                        className="w-full border border-input rounded-md px-3 py-2"
+                    >
+                      <option value="PCS">PCS</option>
+                      <option value="KGS">KGS</option>
+                      <option value="LTR">LTR</option>
+                      </select>
                   </div>
                   <div>
                     <Label>Rate</Label>

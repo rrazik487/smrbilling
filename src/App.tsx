@@ -15,15 +15,14 @@ import Invoices from "./pages/Invoices";
 import Files from "./pages/Files";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
 
-// ✅ Import your Google Drive service
 import { googleDriveService } from "./utils/googleDrive";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // ✅ This runs once on first load
     googleDriveService.initialize();
   }, []);
 
@@ -34,6 +33,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<CreateInvoice />} />
               <Route path="customers" element={<Customers />} />
@@ -41,7 +41,6 @@ const App = () => {
               <Route path="files" element={<Files />} />
               <Route path="settings" element={<Settings />} />
             </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
