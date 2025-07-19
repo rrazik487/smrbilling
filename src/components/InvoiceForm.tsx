@@ -41,8 +41,12 @@ export function InvoiceForm() {
       rate: 0,
       amount: 0
     }],
-    
-    
+    // Initialize supplier, recipient, dispatchFrom, and shipTo to prevent undefined issues
+    supplier: {
+      gstin: "",
+      name: "",
+      address: ""
+    },
     recipient: {
       gstin: "",
       name: "",
@@ -76,10 +80,12 @@ export function InvoiceForm() {
             address: foundCustomer.address,
             placeOfSupply: foundCustomer.state
           },
-          shipTo: {
-            gstin: foundCustomer.gstin,
-            address: foundCustomer.address
-          }
+          // IMPORTANT CHANGE: Do NOT auto-populate shipTo.address here.
+          // This allows for a different ship-to address than the customer's main address.
+          // shipTo: {
+          //   gstin: foundCustomer.gstin,
+          //   address: foundCustomer.address
+          // }
         }));
         toast({
           title: "Customer Found",
@@ -181,20 +187,13 @@ export function InvoiceForm() {
       truckNo: invoiceData.truckNo!,
       placeOfSupply: invoiceData.placeOfSupply!,
       reverseCharge: invoiceData.reverseCharge!,
-      customer,
+      customer, // Customer details remain as is
       items: invoiceData.items!,
-      supplier: invoiceData.supplier!,
-      recipient: {
-        gstin: customer.gstin,
-        name: customer.name,
-        address: customer.address,
-        placeOfSupply: customer.state
-      },
+      // IMPORTANT CHANGE: Use values from invoiceData state for supplier, recipient, dispatchFrom, and shipTo
+      supplier: invoiceData.supplier!, 
+      recipient: invoiceData.recipient!,
       dispatchFrom: invoiceData.dispatchFrom!,
-      shipTo: {
-        gstin: customer.gstin,
-        address: customer.address
-      },
+      shipTo: invoiceData.shipTo!, // This will now use the value from the input field
       ...totals
     };
 
@@ -409,7 +408,7 @@ export function InvoiceForm() {
                     ...prev,
                     supplier: { ...prev.supplier!, address: e.target.value }
                   }))}
-                  placeholder="Address"
+                  placeholder="baragath coir dindigul main road velliyangil, 639118, TAMIL NADU"
                   rows={3}
                 />
               </div>
@@ -496,7 +495,7 @@ export function InvoiceForm() {
                 <Label htmlFor="shipToGstin">Ship To GSTIN</Label>
                 <Input
                   id="shipToGstin"
-                  value={invoiceData.shipTo?.gstin || customer.gstin}
+                  value={invoiceData.shipTo?.gstin || ""} // Changed default to empty string
                   onChange={(e) => setInvoiceData(prev => ({
                     ...prev,
                     shipTo: { ...prev.shipTo!, gstin: e.target.value }
@@ -508,7 +507,7 @@ export function InvoiceForm() {
                 <Label htmlFor="shipToAddress">Ship To Address</Label>
                 <Textarea
                   id="shipToAddress"
-                  value={invoiceData.shipTo?.address || customer.address}
+                  value={invoiceData.shipTo?.address || ""} // Changed default to empty string
                   onChange={(e) => setInvoiceData(prev => ({
                     ...prev,
                     shipTo: { ...prev.shipTo!, address: e.target.value }
